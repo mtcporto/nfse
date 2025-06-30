@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador e Enviador de NFS-e (Homologação João Pessoa)</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador e Enviador de NFS-e (Homologação)</h1>
+
+        <section class="card">
+            <h2>Dados do Prestador</h2>
+            <div class="form-group">
+                <label for="cnpjPrestador">CNPJ Prestador:</label>
+                <input type="text" id="cnpjPrestador" value="15198135000180" placeholder="Ex: 15198135000180">
+            </div>
+            <div class="form-group">
+                <label for="imPrestador">Inscrição Municipal Prestador:</label>
+                <input type="text" id="imPrestador" value="122781-5" placeholder="Ex: 122781-5">
+            </div>
+            <div class="form-group">
+                <label for="razaoPrestador">Razão Social Prestador:</label>
+                <input type="text" id="razaoPrestador" value="PIXEL VIVO SOLUCOES WEB LTDA" placeholder="Ex: Nome da Sua Empresa">
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Dados do Tomador</h2>
+            <div class="form-group">
+                <label for="tipoDocTomador">Tipo Documento Tomador:</label>
+                <select id="tipoDocTomador">
+                    <option value="cnpj" selected>CNPJ</option>
+                    <option value="cpf">CPF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="docTomador">Documento Tomador:</label>
+                <input type="text" id="docTomador" value="11222333000181" placeholder="Ex: CNPJ ou CPF do Tomador">
+            </div>
+            <div class="form-group">
+                <label for="razaoTomador">Razão Social Tomador:</label>
+                <input type="text" id="razaoTomador" value="CLIENTE TESTE LTDA" placeholder="Ex: Nome do Cliente">
+            </div>
+            <div class="form-group">
+                <label for="logradouroTomador">Logradouro Tomador:</label>
+                <input type="text" id="logradouroTomador" value="RUA TESTE" placeholder="Ex: RUA TESTE">
+            </div>
+            <div class="form-group">
+                <label for="numeroTomador">Número Tomador:</label>
+                <input type="text" id="numeroTomador" value="123" placeholder="Ex: 123">
+            </div>
+            <div class="form-group">
+                <label for="bairroTomador">Bairro Tomador:</label>
+                <input type="text" id="bairroTomador" value="CENTRO" placeholder="Ex: CENTRO">
+            </div>
+            <div class="form-group">
+                <label for="codMunicipioTomador">Cód. Município Tomador:</label>
+                <input type="text" id="codMunicipioTomador" value="2211001" placeholder="Ex: 2211001 (João Pessoa)">
+            </div>
+            <div class="form-group">
+                <label for="ufTomador">UF Tomador:</label>
+                <input type="text" id="ufTomador" value="PB" placeholder="Ex: PB">
+            </div>
+            <div class="form-group">
+                <label for="cepTomador">CEP Tomador:</label>
+                <input type="text" id="cepTomador" value="58000000" placeholder="Ex: 58000000">
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Dados do Serviço</h2>
+            <div class="form-group">
+                <label for="valorServicos">Valor dos Serviços:</label>
+                <input type="number" step="0.01" id="valorServicos" value="2500.00" placeholder="Ex: 2500.00">
+            </div>
+            <div class="form-group">
+                <label for="discriminacao">Discriminação:</label>
+                <textarea id="discriminacao" placeholder="Ex: Desenvolvimento de sistema web">Desenvolvimento de sistema web</textarea>
+            </div>
+            <div class="form-group">
+                <label for="itemListaServico">Item Lista Serviço:</label>
+                <input type="text" id="itemListaServico" value="17.09" placeholder="Ex: 17.09">
+            </div>
+            <div class="form-group">
+                <label for="codigoCnae">Código CNAE:</label>
+                <input type="text" id="codigoCnae" value="6201500" placeholder="Ex: 6201500">
+            </div>
+            <div class="form-group">
+                <label for="codigoMunicipioServico">Cód. Município Incidência Serviço:</label>
+                <input type="text" id="codigoMunicipioServico" value="2211001" placeholder="Ex: 2211001 (João Pessoa)">
+            </div>
+            <div class="form-group">
+                <label for="competencia">Competência (MM/YYYY):</label>
+                <input type="text" id="competencia" placeholder="Ex: 06/2025">
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Certificado Digital (.PFX)</h2>
+            <p>
+                Selecione seu arquivo .PFX e insira a senha. Estes dados são processados localmente no navegador.
+                <br>
+                **ATENÇÃO:** Para fins de teste em homologação. Para ambientes de produção, o manuseio de chaves privadas deve ser feito em um ambiente seguro no lado do servidor.
+            </p>
+            <div class="form-group">
+                <label for="pfxFile">Arquivo .PFX:</label>
+                <input type="file" id="pfxFile" accept=".pfx">
+            </div>
+            <div class="form-group">
+                <label for="pfxPassword">Senha do .PFX:</label>
+                <input type="password" id="pfxPassword" value="pixel2025" placeholder="Senha do seu certificado PFX">
+            </div>
+        </section>
+
+        <button id="gerarEnviarBtn">Gerar e Enviar NFS-e</button>
+
+        <section class="card" id="xmlGeradoSection">
+            <h2>XML Gerado</h2>
+            <pre id="xmlGerado"></pre>
+        </section>
+
+        <section class="card" id="respostaWsSection">
+            <h2>Resposta do Webservice</h2>
+            <pre id="respostaWs"></pre>
+        </section>
+
+        <section class="card" id="resumoNfseSection">
+            <h2>Resumo da NFS-e (Gerado após resposta do WS)</h2>
+            <div id="resumoNfse"></div>
+        </section>
+    </div>
+</body>
+</html>
