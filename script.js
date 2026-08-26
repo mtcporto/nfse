@@ -265,8 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
             xmlGeradoPre.textContent = formatXml(soapEnvelope);
             xmlGeradoSection.style.display = 'block';
 
-            // --- Etapa de Envio para o Cloudflare Worker ---
-            const workerUrl = 'http://127.0.0.1:5000/nfse-proxy'; // URL do seu proxy Python
+            // --- Etapa de Envio para a API Node da Vercel ---
+            const workerUrl = '/api/nfse-proxy';
             const webserviceTargetUrl = 'https://serem-hml.joaopessoa.pb.gov.br/notafiscal-abrasfv203-ws/NotaFiscalSoap'; // O webservice real da prefeitura
             
             const workerPayload = {

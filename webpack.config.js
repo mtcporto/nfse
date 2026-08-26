@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin'); // Importe o plugin
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development', // ou 'production'
@@ -14,33 +15,16 @@ module.exports = {
       directory: path.join(__dirname, 'dist'), // Servir arquivos da pasta dist
     },
     port: 8080, // Porta para o dev server
-    historyApiFallback: true, // Para SPA, útil em dev server
-    allowedHosts: 'all', // Permite acesso de localhost ou outros hosts na rede
-    proxy: [
-      { // Seu proxy Python
-        context: ['/nfse-proxy'],
-        target: 'http://localhost:5000',
-        pathRewrite: { '^/nfse-proxy': '/nfse-proxy' },
-        secure: false, // Não usar HTTPS no proxy local
-        changeOrigin: true, // Necessário para CORS
-      },
-      // Se for tentar direto para a prefeitura (CORS no navegador será bloqueado sem CORS headers)
-      // {
-      //   context: ['/webservice'],
-      //   target: 'https://serem-hml.joaopessoa.pb.gov.br',
-      //   pathRewrite: { '^/webservice': '/notafiscal-abrasfv203-ws/NotaFiscalSoap' },
-      //   secure: true,
-      //   changeOrigin: true,
-      //   headers: {
-      //     'SOAPAction': '""'
-      //   },
-      // },
-    ],
+    historyApiFallback: true,
+    allowedHosts: 'all',
   },
-  plugins: [ // Adicione a seção de plugins
+  plugins: [
     new HtmlWebpackPlugin({
       template: './index.html', // Caminho para o seu index.html existente
       filename: 'index.html', // Nome do arquivo de saída no diretório dist
+    }),
+    new CopyPlugin({
+      patterns: [{ from: 'style.css', to: 'style.css' }],
     }),
   ],
   // Adicione regras para carregar CSS se você estiver importando no JS
