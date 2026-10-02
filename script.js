@@ -1,4 +1,5 @@
-const forge = require('node-forge'); // Usar require para compatibilidade com o bundle
+const { escapeMarkup } = require('./markup');
+const { readSigningIdentity, digestXml, signXml } = require('./certificate');
 
 document.addEventListener('DOMContentLoaded', () => {
     const gerarEnviarBtn = document.getElementById('gerarEnviarBtn');
@@ -44,30 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsArrayBuffer(file);
             });
 
-            // Parsear o arquivo PFX com node-forge e descriptografar com a senha
-            const p12Asn1 = forge.asn1.fromDer(forge.util.createBuffer(pfxContent));
-            const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password); // Usando pkcs12FromAsn1 com a senha
-
-            let privateKey = null;
-            let certificate = null;
-
-            // Iterar sobre os "safe bags" para encontrar a chave privada e o certificado
-            for (let i = 0; i < p12.safeContents.length; ++i) {
-                const safeContents = p12.safeContents[i];
-                for (let j = 0; j < safeContents.safeBags.length; ++j) {
-                    const safeBag = safeContents.safeBags[j];
-                    if (safeBag.type === forge.pki.oids.pkcs8ShroudedKeyBag) {
-                        privateKey = safeBag.key;
-                    } else if (safeBag.type === forge.pki.oids.certBag) {
-                        certificate = safeBag.cert;
-                    }
-                }
-            }
-            
-            if (!privateKey || !certificate) {
-                alert('Erro: Não foi possível extrair a chave privada ou o certificado do arquivo PFX. Verifique se o arquivo está correto e a senha.');
-                return;
-            }
+            const { privateKey, certificateBase64 } = await readSigningIdentity(pfxContent, password);
 
             const dadosPrestador = {
                 cnpj: document.getElementById('cnpjPrestador').value.replace(/\D/g, ''),
@@ -126,10 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <DataEmissao>${dataEmissao}</DataEmissao>
                 <Status>1</Status>
             </Rps>
-            <Competencia>${competenciaFormatted}</Competencia>
+            <Competencia>${escapeMarkup(competenciaFormatted)}</Competencia>
             <Servico>
                 <Valores>
-                    <ValorServicos>${dadosServico.valorServicos}</ValorServicos>
+                    <ValorServicos>${escapeMarkup(dadosServico.valorServicos)}</ValorServicos>
                     <ValorDeducoes>0.00</ValorDeducoes>
                     <ValorPis>0.00</ValorPis>
                     <ValorCofins>0.00</ValorCofins>
@@ -144,31 +122,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     <DescontoCondicionado>0.00</DescontoCondicionado>
                 </Valores>
                 <IssRetido>2</IssRetido>
-                <ItemListaServico>${dadosServico.itemListaServico}</ItemListaServico>
-                <CodigoCnae>${dadosServico.codigoCnae}</CodigoCnae>
-                <Discriminacao>${dadosServico.discriminacao}</Discriminacao>
-                <CodigoMunicipio>${dadosServico.codigoMunicipioIncidencia}</CodigoMunicipio>
+                <ItemListaServico>${escapeMarkup(dadosServico.itemListaServico)}</ItemListaServico>
+                <CodigoCnae>${escapeMarkup(dadosServico.codigoCnae)}</CodigoCnae>
+                <Discriminacao>${escapeMarkup(dadosServico.discriminacao)}</Discriminacao>
+                <CodigoMunicipio>${escapeMarkup(dadosServico.codigoMunicipioIncidencia)}</CodigoMunicipio>
                 <ExigibilidadeISS>1</ExigibilidadeISS>
-                <MunicipioIncidencia>${dadosServico.codigoMunicipioIncidencia}</MunicipioIncidencia>
+                <MunicipioIncidencia>${escapeMarkup(dadosServico.codigoMunicipioIncidencia)}</MunicipioIncidencia>
             </Servico>
             <Prestador>
                 <CpfCnpj>
-                    <Cnpj>${dadosPrestador.cnpj}</Cnpj>
+                    <Cnpj>${escapeMarkup(dadosPrestador.cnpj)}</Cnpj>
                 </CpfCnpj>
-                <InscricaoMunicipal>${dadosPrestador.inscricaoMunicipal}</InscricaoMunicipal>
+                <InscricaoMunicipal>${escapeMarkup(dadosPrestador.inscricaoMunicipal)}</InscricaoMunicipal>
             </Prestador>
             <Tomador>
                 <IdentificacaoTomador>
-                    ${dadosTomador.tipoDoc === 'cnpj' ? `<Cnpj>${dadosTomador.documento}</Cnpj>` : `<Cpf>${dadosTomador.documento}</Cpf>`}
+                    ${dadosTomador.tipoDoc === 'cnpj' ? `<Cnpj>${escapeMarkup(dadosTomador.documento)}</Cnpj>` : `<Cpf>${escapeMarkup(dadosTomador.documento)}</Cpf>`}
                 </IdentificacaoTomador>
-                <RazaoSocial>${dadosTomador.razaoSocial}</RazaoSocial>
+                <RazaoSocial>${escapeMarkup(dadosTomador.razaoSocial)}</RazaoSocial>
                 <Endereco>
-                    <Endereco>${dadosTomador.endereco}</Endereco>
-                    <Numero>${dadosTomador.numero}</Numero>
-                    <Bairro>${dadosTomador.bairro}</Bairro>
-                    <CodigoMunicipio>${dadosTomador.codigoMunicipio}</CodigoMunicipio>
-                    <Uf>${dadosTomador.uf}</Uf>
-                    <Cep>${dadosTomador.cep}</Cep>
+                    <Endereco>${escapeMarkup(dadosTomador.endereco)}</Endereco>
+                    <Numero>${escapeMarkup(dadosTomador.numero)}</Numero>
+                    <Bairro>${escapeMarkup(dadosTomador.bairro)}</Bairro>
+                    <CodigoMunicipio>${escapeMarkup(dadosTomador.codigoMunicipio)}</CodigoMunicipio>
+                    <Uf>${escapeMarkup(dadosTomador.uf)}</Uf>
+                    <Cep>${escapeMarkup(dadosTomador.cep)}</Cep>
                 </Endereco>
             </Tomador>
             <OptanteSimplesNacional>2</OptanteSimplesNacional>
@@ -178,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </GerarNfseEnvio>`;
             // --- FIM DO NOVO AJUSTE ---
 
-            // --- Etapa de Assinatura Digital com node-forge ---
+            // --- Etapa de Assinatura Digital com WebCrypto ---
             const xmlDoc = new DOMParser().parseFromString(xmlContent, "application/xml");
             // Agora, o rpsElement deve ser selecionado de dentro do GerarNfseEnvio
             // O target para a assinatura ainda é o Rps, mas o caminho para ele dentro do DOM mudou ligeiramente.
@@ -189,9 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // O outerHTML do elemento rpsElement será usado para calcular o digest
             const xmlToDigest = rpsElement.outerHTML;
             
-            const md = forge.md.sha1.create();
-            md.update(xmlToDigest, 'utf8');
-            const digestValue = forge.util.encode64(md.digest().bytes());
+            const digestValue = await digestXml(xmlToDigest);
 
             // Montar o bloco SignedInfo
             const signedInfoXml = `
@@ -214,14 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const signedInfoCanonical = new XMLSerializer().serializeToString(xmlDocSignedInfo.documentElement);
 
             // Assinar o SignedInfo canônico
-            const mdSignedInfo = forge.md.sha1.create();
-            mdSignedInfo.update(signedInfoCanonical, 'utf8');
-            const signature = privateKey.sign(mdSignedInfo);
-            const signatureValue = forge.util.encode64(signature);
-
-            // Obtenção do certBase64
-            const certPem = forge.pki.certificateToPem(certificate);
-            const certBase64 = certPem.replace(/(-----(BEGIN|END) CERTIFICATE-----|\s)/g, '');
+            const signatureValue = await signXml(signedInfoCanonical, privateKey);
+            const certBase64 = certificateBase64;
 
             // Montar o bloco KeyInfo
             const keyInfoXml = `
@@ -343,9 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const correcao = mensagemRetorno.querySelector('Correcao')?.textContent;
                 resumoDiv.innerHTML = `
                     <p><strong>Status:</strong> ERRO</p>
-                    <p><strong>Código:</strong> ${codigo || 'N/A'}</p>
-                    <p><strong>Mensagem:</strong> ${mensagem || 'N/A'}</p>
-                    <p><strong>Correção:</strong> ${correcao || 'N/A'}</p>
+                    <p><strong>Código:</strong> ${escapeMarkup(codigo || 'N/A')}</p>
+                    <p><strong>Mensagem:</strong> ${escapeMarkup(mensagem || 'N/A')}</p>
+                    <p><strong>Correção:</strong> ${escapeMarkup(correcao || 'N/A')}</p>
                 `;
             } else {
                 const compNfse = xmlDoc.querySelector('CompNfse');
@@ -363,14 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     resumoDiv.innerHTML = `
                         <p><strong>Status:</strong> SUCESSO</p>
-                        <p><strong>Número NFS-e:</strong> ${numeroNfse || 'N/A'}</p>
-                        <p><strong>Código de Verificação:</strong> ${codigoVerificacao || 'N/A'}</p>
-                        <p><strong>Data de Emissão:</strong> ${dataEmissao ? new Date(dataEmissao).toLocaleString() : 'N/A'}</p>
-                        <p><strong>Valor dos Serviços:</strong> R$ ${valorServicos || 'N/A'}</p>
+                        <p><strong>Número NFS-e:</strong> ${escapeMarkup(numeroNfse || 'N/A')}</p>
+                        <p><strong>Código de Verificação:</strong> ${escapeMarkup(codigoVerificacao || 'N/A')}</p>
+                        <p><strong>Data de Emissão:</strong> ${escapeMarkup(dataEmissao ? new Date(dataEmissao).toLocaleString() : 'N/A')}</p>
+                        <p><strong>Valor dos Serviços:</strong> R$ ${escapeMarkup(valorServicos || 'N/A')}</p>
                         <hr>
-                        <p><strong>Prestador:</strong> ${razaoSocialPrestador || 'N/A'} (CNPJ: ${cnpjPrestador || 'N/A'})</p>
-                        <p><strong>Tomador:</strong> ${razaoSocialTomador || 'N/A'} (Doc: ${documentoTomador || 'N/A'})</p>
-                        <p><strong>Serviço:</strong> ${discriminacao || 'N/A'}</p>
+                        <p><strong>Prestador:</strong> ${escapeMarkup(razaoSocialPrestador || 'N/A')} (CNPJ: ${escapeMarkup(cnpjPrestador || 'N/A')})</p>
+                        <p><strong>Tomador:</strong> ${escapeMarkup(razaoSocialTomador || 'N/A')} (Doc: ${escapeMarkup(documentoTomador || 'N/A')})</p>
+                        <p><strong>Serviço:</strong> ${escapeMarkup(discriminacao || 'N/A')}</p>
                     `;
                 } else {
                     resumoDiv.innerHTML = '<p>Resposta do webservice não contém NFS-e gerada ou mensagem de erro clara.</p>';
@@ -379,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resumoSection.style.display = 'block';
         } catch (e) {
             console.error('Erro ao processar resposta XML:', e);
-            resumoDiv.innerHTML = `<p class="error">Erro ao processar a resposta do webservice: ${e.message}</p>`;
+            resumoDiv.innerHTML = `<p class="error">Erro ao processar a resposta do webservice: ${escapeMarkup(e.message)}</p>`;
             resumoSection.style.display = 'block';
         }
     }
